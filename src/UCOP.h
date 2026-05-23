@@ -6,6 +6,7 @@
 #include <Streaming.h>
 
 #include <MemoryTools.h>
+#include <MemoryTools_RingBuffer.h>
 #include <Result.h>
 
 class UCOPData;
