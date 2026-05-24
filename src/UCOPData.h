@@ -25,8 +25,9 @@ public:
 public:
   //-------------------- static --------------------
 
-  static UCOPData Create_CommandNotSupported (UCOPData& i_RequestData,
-                                              uint32_t  i_Timestamp);
+  static UCOPData CreateReplyData ( UCOPData&             i_RequestData,
+                                    uint32_t              i_Timestamp,
+                                    UCOP::EMessageResult  i_MessageResult);
 
   //-------------------- instance --------------------
 

@@ -78,7 +78,6 @@ UCOPConfig::UCOPConfig (bool                i_DeviceIdsUsed,
   m_TimestampUsed = i_TimestampUsed;
   m_DeviceId      = i_DeviceId;
   m_ChecksumType  = i_ChecksumType;
-
 }
 
 //--------------------------------------------------------------------

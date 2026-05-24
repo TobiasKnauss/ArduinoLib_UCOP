@@ -1,15 +1,16 @@
 #include "UCOPData.h"
 
 //--------------------------------------------------------------------
-UCOPData UCOPData::Create_CommandNotSupported (UCOPData& i_RequestData,
-                                               uint32_t  i_Timestamp)
+UCOPData UCOPData::CreateReplyData (UCOPData&             i_RequestData,
+                                    uint32_t              i_Timestamp,
+                                    UCOP::EMessageResult  i_MessageResult)
 {
-  return UCOPData (i_RequestData.ActionIsWrite,
-                   i_RequestData.RemoteDeviceId,
-                   i_RequestData.MessageId,
-                   i_Timestamp,
-                   i_RequestData.CommandId,
-                   UCOP::EMessageResult::FAIL_CommandNotSupported);
+  return UCOPData ( i_RequestData.ActionIsWrite,
+                    i_RequestData.RemoteDeviceId,
+                    i_RequestData.MessageId,
+                    i_Timestamp,
+                    i_RequestData.CommandId,
+                    i_MessageResult);
 }
 
 //--------------------------------------------------------------------
