@@ -1,5 +1,5 @@
-#include <EEPROM.h>
 #include "UCOP.h"
+#include "UCOPConfig.h"
 #include "UCOPData.h"
 
 //--------------------------------------------------------------------
@@ -34,53 +34,38 @@ const char* const UCOP::c_EMessageResult_Failures_Names[] PROGMEM =
 #undef X
 
 //--------------------------------------------------------------------
-UCOP::UCOP (bool          i_DeviceIdsUsed,
-            bool          i_MessageIdUsed,
-            bool          i_TimestampUsed,
-            uint32_t      i_DeviceId,
-            EChecksumType i_ChecksumType,
-            ::EResult&    o_Result)
+::EResult UCOP::Create (UCOPConfig* i_pConfig,
+                        UCOP*&      o_pUCOP)
 {
-  o_Result = CommonConstructor (i_DeviceIdsUsed,
-                                i_MessageIdUsed,
-                                i_TimestampUsed,
-                                i_DeviceId,
-                                i_ChecksumType);
-}
+  o_pUCOP = nullptr;
+  UCOP* pUCOP = new UCOP (i_pConfig);
 
-//--------------------------------------------------------------------
-UCOP::UCOP (uint16_t    i_EepromAddress,
-            ::EResult&  o_Result)
-{
-  m_EepromAddress = i_EepromAddress;
-  o_Result = ReadConfigFromEEPROM (i_EepromAddress);
-}
+  ::EResult result = pUCOP->Verify_exec ();
+  if (result != ::EResult::SUCCESS)
+  {
+    delete pUCOP;
+    return result;
+  }
 
-//--------------------------------------------------------------------
-::EResult UCOP::CommonConstructor ( bool          i_DeviceIdsUsed,
-                                    bool          i_MessageIdUsed,
-                                    bool          i_TimestampUsed,
-                                    uint32_t      i_DeviceId,
-                                    EChecksumType i_ChecksumType)
-{
-  if (i_DeviceId == 0)
-    return ::EResult::FAIL_Device_IdInvalid;
-  if (!IsChecksumValid (i_ChecksumType))
-    return ::EResult::FAIL_Device_ConfigInvalid;
-
-  m_DeviceIdsUsed = i_DeviceIdsUsed;
-  m_MessageIdUsed = i_MessageIdUsed;
-  m_TimestampUsed = i_TimestampUsed;
-  m_DeviceId      = i_DeviceId;
-  m_ChecksumType  = i_ChecksumType;
-
+  o_pUCOP = pUCOP;
   return ::EResult::SUCCESS;
 }
 
 //--------------------------------------------------------------------
-uint16_t UCOP::get_EepromAddress ()
+UCOP::~UCOP ()
 {
-  return m_EepromAddress;
+}
+
+//--------------------------------------------------------------------
+UCOP::UCOP (UCOPConfig* i_pConfig)
+{
+  m_pConfig = i_pConfig;
+}
+
+//--------------------------------------------------------------------
+UCOPConfig* UCOP::get_Config ()
+{
+  return m_pConfig;
 }
 
 //--------------------------------------------------------------------
@@ -139,16 +124,16 @@ bool UCOP::IsChecksumValid (EChecksumType i_ChecksumType)
 uint8_t UCOP::CalcHeaderSize ()
 {
   return c_HeaderMinLength
-       + (m_DeviceIdsUsed ? 8 : 0)
-       + (m_MessageIdUsed ? 4 : 0)
-       + (m_TimestampUsed ? 4 : 0);
+       + (m_pConfig->get_DeviceIdsUsed () ? 8 : 0)
+       + (m_pConfig->get_MessageIdUsed () ? 4 : 0)
+       + (m_pConfig->get_TimestampUsed () ? 4 : 0);
 }
 
 //--------------------------------------------------------------------
 uint8_t UCOP::CalcTrailerSize ()
 {
   return c_TrailerMinLength
-       + GetChecksumLength (m_ChecksumType);
+       + GetChecksumLength (m_pConfig->get_ChecksumType ());
 }
 
 //--------------------------------------------------------------------
@@ -178,22 +163,12 @@ EResult UCOP::ComposeRequest (UCOPData& i_Data,
 }
 
 //--------------------------------------------------------------------
-void UCOP::PrintConfig ()
-{
-  Serial << F("DeviceIdsUsed = ") << m_DeviceIdsUsed << endl;
-  Serial << F("MessageIdUsed = ") << m_MessageIdUsed << endl;
-  Serial << F("TimestampUsed = ") << m_TimestampUsed << endl;
-  Serial << F("DeviceId      = ") << m_DeviceId << " = 0x" << _HEX8 (m_DeviceId) << endl;
-  Serial << F("ChecksumType  = ") << (uint8_t)m_ChecksumType << endl;
-}
-
-//--------------------------------------------------------------------
 EResult UCOP::SearchMessage (uint8_t*  i_pRingBuffer,
                              uint16_t  i_RingBufferLength,
                              uint16_t& io_RingBufferStartIndex,
                              UCOPData& io_Data,
                              bool&     o_MessageTypeIsReply,
-                             uint8_t&  o_MessageLength)
+                             uint16_t& o_MessageLength)
 {
   if (i_pRingBuffer == nullptr)
     return ::EResult::FAIL_Pointer_IsZero;
@@ -260,7 +235,7 @@ EResult UCOP::SearchMessage (uint8_t*  i_pRingBuffer,
       uint32_t ownDeviceId;
       if (!RingBuffer_GetValueAndMovePtr (i_pRingBuffer, i_RingBufferLength, pAnalyze, ownDeviceId))
         return ::EResult::FAIL_Buffer_GetValue;
-      if (ownDeviceId != m_DeviceId
+      if (ownDeviceId != m_pConfig->get_DeviceId ()
       &&  result == ::EResult::InProgress)
         result = (::EResult)EResult::FAIL_UCOP_Message_ReceiverDeviceIdMismatch;
     }
@@ -402,30 +377,6 @@ EResult UCOP::SearchMessage (uint8_t*  i_pRingBuffer,
 }
 
 //--------------------------------------------------------------------
-::EResult UCOP::WriteConfigToEEPROM (uint16_t i_Address)
-{
-  if (c_EepromConfigTotalSize + i_Address > EEPROM.length ())
-    return ::EResult::FAIL_EEPROM_IndexOutsideRange;
-
-  EEPROM.put (i_Address + 0, m_DeviceIdsUsed);
-  EEPROM.put (i_Address + 1, m_MessageIdUsed);
-  EEPROM.put (i_Address + 2, m_TimestampUsed);
-  EEPROM.put (i_Address + 3, m_DeviceId);
-  EEPROM.put (i_Address + 7, m_ChecksumType);
-
-  uint8_t  byteValue = 0;
-  uint16_t checksum = m_Crc16.modbus (&byteValue, 1);
-  for (int index = 0; index < c_EepromConfigDataSize; index++)
-  {
-    byteValue = EEPROM.read (i_Address + index);
-    checksum = m_Crc16.modbus_upd (&byteValue, 1);
-  }
-  EEPROM.put (i_Address + 8, checksum);
-
-  return ::EResult::SUCCESS;
-}
-
-//--------------------------------------------------------------------
 ::EResult UCOP::ComposeMessage (UCOPData& i_Data,
                                 uint8_t*  i_pMessageBuffer,
                                 uint8_t   i_MessageBufferLength,
@@ -464,25 +415,26 @@ EResult UCOP::SearchMessage (uint8_t*  i_pRingBuffer,
   *(pMessageBuffer++) = c_Version;
 
   // Flags
-  uint8_t flags = (byte)m_ChecksumType << 5;
-  if (i_MessageIsReply    ) flags |= 1 << c_FlagIndex_MessageType;
-  if (i_Data.ActionIsWrite) flags |= 1 << c_FlagIndex_Action;
-  if (m_DeviceIdsUsed     ) flags |= 1 << c_FlagIndex_DeviceIdsUsed;
-  if (m_MessageIdUsed     ) flags |= 1 << c_FlagIndex_MessageIdUsed;
-  if (m_TimestampUsed     ) flags |= 1 << c_FlagIndex_TimestampUsed;
+  uint8_t flags = (byte)m_pConfig->get_ChecksumType () << 5;
+  if (i_MessageIsReply               ) flags |= 1 << c_FlagIndex_MessageType;
+  if (i_Data.ActionIsWrite           ) flags |= 1 << c_FlagIndex_Action;
+  if (m_pConfig->get_DeviceIdsUsed ()) flags |= 1 << c_FlagIndex_DeviceIdsUsed;
+  if (m_pConfig->get_MessageIdUsed ()) flags |= 1 << c_FlagIndex_MessageIdUsed;
+  if (m_pConfig->get_TimestampUsed ()) flags |= 1 << c_FlagIndex_TimestampUsed;
   *(pMessageBuffer++) = flags;
 
   // Sender and Receiver Device IDs
-  if (m_DeviceIdsUsed)
+  if (m_pConfig->get_DeviceIdsUsed ())
   {
-    memcpy (pMessageBuffer, &m_DeviceId, sizeof (m_DeviceId));
-    pMessageBuffer += sizeof (m_DeviceId);
+    uint32_t deviceId = m_pConfig->get_DeviceId ();
+    memcpy (pMessageBuffer, &deviceId, sizeof (deviceId));
+    pMessageBuffer += sizeof (deviceId);
     memcpy (pMessageBuffer, &i_Data.RemoteDeviceId, sizeof (i_Data.RemoteDeviceId));
     pMessageBuffer += sizeof (i_Data.RemoteDeviceId);
   }
 
   // Message ID
-  if (m_MessageIdUsed)
+  if (m_pConfig->get_MessageIdUsed ())
   {
     if (i_MessageIsReply)
     {
@@ -499,7 +451,7 @@ EResult UCOP::SearchMessage (uint8_t*  i_pRingBuffer,
   }
 
   // Timestamp
-  if (m_TimestampUsed)
+  if (m_pConfig->get_TimestampUsed ())
   {
     memcpy (pMessageBuffer, &i_Data.Timestamp, sizeof (i_Data.Timestamp));
     pMessageBuffer += sizeof (i_Data.Timestamp);
@@ -525,7 +477,7 @@ EResult UCOP::SearchMessage (uint8_t*  i_pRingBuffer,
   memset (pMessageBuffer, 0, trailerSize);
 
   // Checksum
-  switch (m_ChecksumType)
+  switch (m_pConfig->get_ChecksumType ())
   {
   case UCOP::EChecksumType::None:
     break;
@@ -557,40 +509,10 @@ EResult UCOP::SearchMessage (uint8_t*  i_pRingBuffer,
 }
 
 //--------------------------------------------------------------------
-::EResult UCOP::ReadConfigFromEEPROM (uint16_t i_Address)
+::EResult UCOP::Verify_exec ()
 {
-  if (c_EepromConfigTotalSize + i_Address > EEPROM.length ())
-    return ::EResult::FAIL_EEPROM_IndexOutsideRange;
+  if (m_pConfig == nullptr)
+    return ::EResult::FAIL_Pointer_IsZero;
 
-  bool                deviceIdsUsed;
-  bool                messageIdUsed;
-  bool                timestampUsed;
-  uint32_t            deviceId;
-  UCOP::EChecksumType checksumType;
-  uint16_t            configChecksumCRC16;
-
-  EEPROM.get (i_Address + 0, deviceIdsUsed);
-  EEPROM.get (i_Address + 1, messageIdUsed);
-  EEPROM.get (i_Address + 2, timestampUsed);
-  EEPROM.get (i_Address + 3, deviceId);
-  EEPROM.get (i_Address + 7, checksumType);
-  EEPROM.get (i_Address + 8, configChecksumCRC16);
-
-  uint8_t  byteValue = 0;
-  uint16_t checksum = m_Crc16.modbus (&byteValue, 1);
-  for (int index = 0; index < c_EepromConfigDataSize; index++)
-  {
-    byteValue = EEPROM.read (i_Address + index);
-    checksum = m_Crc16.modbus_upd (&byteValue, 1);
-  }
-  if (checksum != configChecksumCRC16)
-    return ::EResult::FAIL_Device_ConfigChecksumWrong;
-
-  ::EResult result = CommonConstructor (deviceIdsUsed,
-                                        messageIdUsed,
-                                        timestampUsed,
-                                        deviceId,
-                                        checksumType);
-
-  return result;
+  return ::EResult::SUCCESS;
 }

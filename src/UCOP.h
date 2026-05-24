@@ -9,6 +9,7 @@
 #include <MemoryTools_RingBuffer.h>
 #include <Result.h>
 
+class UCOPConfig;
 class UCOPData;
 
 // UCOP: Universal Communication Protocol
@@ -72,8 +73,6 @@ public:
 private:
   //-------------------- static --------------------
 
-  static const uint8_t c_EepromConfigDataSize  = 8;
-  static const uint8_t c_EepromConfigTotalSize = 10;
   static const uint8_t c_MessageStartID = 0x02;  // STX
   static const uint8_t c_MessageEndID   = 0x03;  // ETX
   static const uint8_t c_Version = 0x01;
@@ -86,10 +85,6 @@ private:
   static const uint8_t c_FlagIndex_MessageIdUsed = 3;
   static const uint8_t c_FlagIndex_TimestampUsed = 4;
   static const uint8_t c_FlagIndex_ChecksumType  = 5;
-  static const uint8_t c_MessageType_Request = 0x0;
-  static const uint8_t c_MessageType_Reply   = 0x1;
-  static const uint8_t c_Action_Read  = 0x0;
-  static const uint8_t c_Action_Write = 0x1;
 
   static const char* const c_EResult_ClassFailures_Names[] PROGMEM;
   static const char* const c_EMessageResult_Results_Names[] PROGMEM;
@@ -106,13 +101,8 @@ private:
 
   //-------------------- instance --------------------
 
-  EChecksumType m_ChecksumType  = EChecksumType::None;
-  uint32_t      m_DeviceId      = 0;
-  bool          m_DeviceIdsUsed = false;
-  uint32_t      m_MessageId     = 0;
-  bool          m_MessageIdUsed = false;
-  bool          m_TimestampUsed = false;
-  uint16_t      m_EepromAddress = 0;
+  UCOPConfig* m_pConfig   = nullptr;
+  uint32_t    m_MessageId = 0;
 
   FastCRC8  m_Crc8;
   FastCRC16 m_Crc16;
@@ -120,17 +110,19 @@ private:
 
 //==================== Constructors ====================
 public:
+  //-------------------- static --------------------
+
+  static ::EResult Create ( UCOPConfig* i_pConfig,
+                            UCOP*&      o_pUCOP);
+
   //-------------------- instance --------------------
 
-  UCOP (bool          i_DeviceIdsUsed,
-        bool          i_MessageIdUsed,
-        bool          i_TimestampUsed,
-        uint32_t      i_DeviceId,
-        EChecksumType i_ChecksumType,
-        ::EResult&    o_Result);
+  ~UCOP ();
 
-  UCOP (uint16_t    i_EepromAddress,
-        ::EResult&  o_Result);
+protected:
+  //-------------------- instance --------------------
+
+  UCOP (UCOPConfig* i_pConfig);
 
 private:
   //-------------------- instance --------------------
@@ -145,7 +137,7 @@ private:
 public:
   //-------------------- instance --------------------
 
-  uint16_t get_EepromAddress ();
+  UCOPConfig* get_Config ();
 
 //==================== Public Methods ====================
 public:
@@ -177,16 +169,12 @@ public:
                             uint8_t   i_MessageBufferLength,
                             uint16_t& o_MessageLength);
 
-  void PrintConfig ();
-
   ::EResult SearchMessage (uint8_t*  i_pRingBuffer,
                            uint16_t  i_RingBufferLength,
                            uint16_t& io_RingBufferStartIndex,
                            UCOPData& io_Data,
                            bool&     o_MessageTypeIsReply,
-                           uint8_t&  o_MessageLength);
-
-  ::EResult WriteConfigToEEPROM (uint16_t i_Address);
+                           uint16_t& o_MessageLength);
 
 //==================== Private Methods ====================
 private:
@@ -198,7 +186,7 @@ private:
                             uint16_t& o_MessageLength,
                             bool      i_MessageIsReply);
 
-  ::EResult ReadConfigFromEEPROM (uint16_t i_Address);
+  ::EResult Verify_exec ();
 };
 
 #endif
