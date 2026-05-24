@@ -35,10 +35,10 @@ class UCOP
 //  + MIL    3 - 15      0.0/4.0    Timestamp, Length ("TSL"): 0/4
 //  + TSL    3 - 19          2.0    Command ID
 //           5 - 21          1.0    Result
-//           6 - 22          1.0    Payload data length ("PDL")
-//           7 - 21+PDL      PDL    Payload data, Length ("PDL"): 0-255
-//  + PDL    7 - 21+PDL  0.0-4.0    Checksum, Length ("CL"): 0/1/2/4
-//  + CL     7 - 25+PDL      1.0    ETX char
+//           6 - 22          2.0    Payload data length ("PDL")
+//           8 - 24+PDL      PDL    Payload data, Length ("PDL"): 0-65000
+//  + PDL    8 - 24+PDL  0.0-4.0    Checksum, Length ("CL"): 0/1/2/4
+//  + CL     8 - 28+PDL      1.0    ETX char
 //--------------------------------------------------------------------
 
 //==================== Enums ====================
@@ -70,13 +70,21 @@ public:
   };
 
 //==================== Fields ====================
+public:
+  //-------------------- static --------------------
+
+  static const bool ACTION_Read  = false;
+  static const bool ACTION_Write = true;
+  static const bool TYPE_Reply   = true;
+  static const bool TYPE_Request = false;
+
 private:
   //-------------------- static --------------------
 
   static const uint8_t c_MessageStartID = 0x02;  // STX
   static const uint8_t c_MessageEndID   = 0x03;  // ETX
   static const uint8_t c_Version = 0x01;
-  static const uint8_t c_HeaderMinLength  = 7;   // STX:1, Version:1, Flags:1, CommandID:2, Result:1, PayloadLength:1
+  static const uint8_t c_HeaderMinLength  = 8;   // STX:1, Version:1, Flags:1, CommandID:2, Result:1, PayloadLength:2
   static const uint8_t c_TrailerMinLength = 1;   // ETX:1
   static const uint8_t c_MessageMinLength = c_HeaderMinLength + c_TrailerMinLength;
   static const uint8_t c_FlagIndex_MessageType   = 0;
@@ -150,7 +158,7 @@ public:
   static const __FlashStringHelper* GetMessageResultText (EMessageResult i_MessageResult);
 
   static const __FlashStringHelper* GetResultText (::EResult i_Result);
-  
+
   static bool IsChecksumValid (EChecksumType i_ChecksumType);
 
   //-------------------- instance --------------------
@@ -161,12 +169,12 @@ public:
 
   ::EResult ComposeReply (UCOPData& i_Data,
                           uint8_t*  i_pMessageBuffer,
-                          uint8_t   i_MessageBufferLength,
+                          uint16_t  i_MessageBufferLength,
                           uint16_t& o_MessageLength);
 
   ::EResult ComposeRequest (UCOPData& i_Data,
                             uint8_t*  i_pMessageBuffer,
-                            uint8_t   i_MessageBufferLength,
+                            uint16_t  i_MessageBufferLength,
                             uint16_t& o_MessageLength);
 
   ::EResult SearchMessage (uint8_t*  i_pRingBuffer,
@@ -182,7 +190,7 @@ private:
 
   ::EResult ComposeMessage (UCOPData& i_Data,
                             uint8_t*  i_pMessageBuffer,
-                            uint8_t   i_MessageBufferLength,
+                            uint16_t  i_MessageBufferLength,
                             uint16_t& o_MessageLength,
                             bool      i_MessageIsReply);
 

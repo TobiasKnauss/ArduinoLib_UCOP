@@ -18,8 +18,8 @@ public:
   uint32_t              RemoteDeviceId      = 0;      // may be zero if not used.
   uint32_t              Timestamp           = 0;      // may be zero if not used.
   uint8_t*              pPayloadBuffer      = nullptr;
-  uint8_t               PayloadBufferLength = 0;
-  uint8_t               PayloadLength       = 0;
+  uint16_t              PayloadBufferLength = 0;
+  uint16_t              PayloadLength       = 0;
 
 //==================== Constructors ====================
 public:
@@ -50,10 +50,10 @@ public:
   void Clear ();
 
   bool IsEmpty ();
-  
+
   void SetPayloadInfo (uint8_t* i_pPayloadBuffer,
-                       uint8_t  i_PayloadBufferLength,
-                       uint8_t  i_PayloadLength = 0);
+                       uint16_t i_PayloadBufferLength,
+                       uint16_t i_PayloadLength = 0);
 };
 
 #endif

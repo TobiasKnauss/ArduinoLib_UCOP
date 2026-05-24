@@ -138,8 +138,8 @@ uint8_t UCOP::CalcTrailerSize ()
 
 //--------------------------------------------------------------------
 EResult UCOP::ComposeReply (UCOPData& i_Data,
-                            byte*     i_pMessageBuffer,
-                            byte      i_MessageBufferLength,
+                            uint8_t*  i_pMessageBuffer,
+                            uint16_t  i_MessageBufferLength,
                             uint16_t& o_MessageLength)
 {
   return ComposeMessage (i_Data,
@@ -152,7 +152,7 @@ EResult UCOP::ComposeReply (UCOPData& i_Data,
 //--------------------------------------------------------------------
 EResult UCOP::ComposeRequest (UCOPData& i_Data,
                               uint8_t*  i_pMessageBuffer,
-                              uint8_t   i_MessageBufferLength,
+                              uint16_t  i_MessageBufferLength,
                               uint16_t& o_MessageLength)
 {
   return ComposeMessage (i_Data,
@@ -192,7 +192,7 @@ EResult UCOP::SearchMessage (uint8_t*  i_pRingBuffer,
     uint8_t* pSearch = i_pRingBuffer + io_RingBufferStartIndex + searchIndex;
     if (pSearch >= i_pRingBuffer + i_RingBufferLength)
       pSearch -= i_RingBufferLength;
-    
+
     ::EResult result = ::EResult::InProgress;
 
     //========== Header ==========
@@ -211,7 +211,7 @@ EResult UCOP::SearchMessage (uint8_t*  i_pRingBuffer,
       return ::EResult::FAIL_Buffer_GetValue;
     if (version != c_Version)
       continue;
-    
+
     // Flags
     uint8_t flags = 0;
     if (!RingBuffer_GetValueAndMovePtr (i_pRingBuffer, i_RingBufferLength, pAnalyze, flags))
@@ -231,7 +231,7 @@ EResult UCOP::SearchMessage (uint8_t*  i_pRingBuffer,
       if (io_Data.RemoteDeviceId == 0
       &&  result == ::EResult::InProgress)
         result = (::EResult)EResult::FAIL_UCOP_Message_SenderDeviceIdInvalid;
-      
+
       uint32_t ownDeviceId;
       if (!RingBuffer_GetValueAndMovePtr (i_pRingBuffer, i_RingBufferLength, pAnalyze, ownDeviceId))
         return ::EResult::FAIL_Buffer_GetValue;
@@ -354,8 +354,8 @@ EResult UCOP::SearchMessage (uint8_t*  i_pRingBuffer,
       }
       else  // message wraps around at buffer end
       {
-        uint8_t len1 = i_pRingBuffer + i_RingBufferLength - pSearch;
-        uint8_t len2 = pAnalyze - i_pRingBuffer;
+        uint16_t len1 = i_pRingBuffer + i_RingBufferLength - pSearch;
+        uint16_t len2 = pAnalyze - i_pRingBuffer;
         o_MessageLength = len1 + len2;
         memset (pSearch,       0xDD, len1);
         memset (i_pRingBuffer, 0xDD, len2);
@@ -379,7 +379,7 @@ EResult UCOP::SearchMessage (uint8_t*  i_pRingBuffer,
 //--------------------------------------------------------------------
 ::EResult UCOP::ComposeMessage (UCOPData& i_Data,
                                 uint8_t*  i_pMessageBuffer,
-                                uint8_t   i_MessageBufferLength,
+                                uint16_t  i_MessageBufferLength,
                                 uint16_t& o_MessageLength,
                                 bool      i_MessageIsReply)
 {
@@ -465,7 +465,8 @@ EResult UCOP::SearchMessage (uint8_t*  i_pRingBuffer,
   *pMessageBuffer++ = i_MessageIsReply ? (uint8_t)i_Data.MessageResult : 0;
 
   // Payload data length
-  *pMessageBuffer++ = i_Data.PayloadLength;
+  memcpy (pMessageBuffer, &i_Data.PayloadLength, sizeof (i_Data.PayloadLength));
+  pMessageBuffer += sizeof (i_Data.PayloadLength);
 
   //========== Payload ==========
   // Payload data
@@ -499,7 +500,7 @@ EResult UCOP::SearchMessage (uint8_t*  i_pRingBuffer,
     }
     break;
   }
-  
+
   // ETX
   *(pMessageBuffer++) = c_MessageEndID;
 
