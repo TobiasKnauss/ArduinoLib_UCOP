@@ -58,7 +58,7 @@ void UCOPData::Clear ()
 //--------------------------------------------------------------------
 bool UCOPData::IsEmpty ()
 {
-  return CommandId > 0;  // The command ID must never be zero if data exists. All other values may be zero.
+  return CommandId == 0;  // The command ID must never be zero if data exists. All other values may be zero.
 }
 
 //--------------------------------------------------------------------
