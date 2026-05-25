@@ -2,7 +2,6 @@
 
 #include <UCOPConfig.h>
 
-const bool     c_WriteConfig = false;  // <--- Set this flag to TRUE if the config has to be changed.
 const uint16_t c_EepromOffset = 60;
 
 const bool                m_DeviceIdsUsed = true;
