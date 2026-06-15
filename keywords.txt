@@ -7,33 +7,46 @@
 #######################################
 
 UCOP			KEYWORD1
+UCOPConfig		KEYWORD1
 UCOPData		KEYWORD1
-EChecksumType	KEYWORD1
 EMessageResult	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
 
-CalcHeaderSize		KEYWORD2
+get_Config	KEYWORD2
+
+CalcHeaderSize	KEYWORD2
 CalcTrailerSize		KEYWORD2
 CommonConstructor	KEYWORD2
-ComposeMessage		KEYWORD2
-ComposeReply		KEYWORD2
-ComposeRequest		KEYWORD2
-GetChecksumLength	KEYWORD2
+ComposeMessage	KEYWORD2
+ComposeReply	KEYWORD2
+ComposeRequest	KEYWORD2
 GetMessageResultForFunctionResult	KEYWORD2
 GetMessageResultText	KEYWORD2
-GetResultText		KEYWORD2
-IsChecksumValid		KEYWORD2
-PrintConfig		KEYWORD2
+GetResultText	KEYWORD2
 ReadConfigFromEEPROM	KEYWORD2
-SearchMessage		KEYWORD2
-UpdateTimestamp		KEYWORD2
+SearchMessage	KEYWORD2
 WriteConfigToEEPROM	KEYWORD2
 
 Clear		KEYWORD2
+IsEmpty		KEYWORD2
 SetPayloadInfo	KEYWORD2
+
+get_EepromConfigDataSize	KEYWORD2
+get_EepromConfigChecksumSize	KEYWORD2
+get_DeviceId	KEYWORD2
+get_DeviceIdsUsed	KEYWORD2
+get_MessageIdUsed	KEYWORD2
+get_TimestampUsed	KEYWORD2
+
+Print	KEYWORD2
+ReadFromEEPROM	KEYWORD2
+ReadFromEEPROM_exec	KEYWORD2
+Verify_exec	KEYWORD2
+WriteToEEPROM	KEYWORD2
+WriteToEEPROM_exec	KEYWORD2
 
 #######################################
 # Instances (KEYWORD2)

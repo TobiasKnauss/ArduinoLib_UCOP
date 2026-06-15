@@ -2,7 +2,6 @@
 #define UCOPConfig_h
 
 #include <Result.h>
-#include <MemoryTools_EEPROM.h>
 
 #include "UCOP.h"
 
@@ -11,24 +10,26 @@ class UCOPConfig
 {
 //==================== Fields ====================
 private:
+  //-------------------- static --------------------
+
+  static const bool c_InvertByteOrder = false;
+
   //-------------------- instance --------------------
 
-  UCOP::EChecksumType m_ChecksumType  = UCOP::EChecksumType::None;
-  uint32_t            m_DeviceId      = 0;
-  bool                m_DeviceIdsUsed = false;
-  bool                m_MessageIdUsed = false;
-  bool                m_TimestampUsed = false;
+  uint32_t  m_DeviceId      = 0;
+  bool      m_DeviceIdsUsed = false;
+  bool      m_MessageIdUsed = false;
+  bool      m_TimestampUsed = false;
 
 //==================== Constructors ====================
 public:
   //-------------------- static --------------------
 
-  static ::EResult Create ( bool                i_DeviceIdsUsed,
-                            bool                i_MessageIdUsed,
-                            bool                i_TimestampUsed,
-                            uint32_t            i_DeviceId,
-                            UCOP::EChecksumType i_ChecksumType,
-                            UCOPConfig*&        o_pConfig);
+  static ::EResult Create ( bool          i_DeviceIdsUsed,
+                            bool          i_MessageIdUsed,
+                            bool          i_TimestampUsed,
+                            uint32_t      i_DeviceId,
+                            UCOPConfig*&  o_pConfig);
 
   static ::EResult Create ( uint16_t      i_EepromAddress,
                             UCOPConfig*&  o_pConfig);
@@ -42,11 +43,10 @@ public:
 protected:
   //-------------------- instance --------------------
 
-  UCOPConfig (bool                i_DeviceIdsUsed,
-              bool                i_MessageIdUsed,
-              bool                i_TimestampUsed,
-              uint32_t            i_DeviceId,
-              UCOP::EChecksumType i_ChecksumType);
+  UCOPConfig (bool      i_DeviceIdsUsed,
+              bool      i_MessageIdUsed,
+              bool      i_TimestampUsed,
+              uint32_t  i_DeviceId);
 
 //==================== Properties ====================
 public:
@@ -55,11 +55,10 @@ public:
   uint8_t get_EepromConfigDataSize ();
   uint8_t get_EepromConfigChecksumSize ();
 
-  UCOP::EChecksumType get_ChecksumType ();
-  uint32_t            get_DeviceId ();
-  bool                get_DeviceIdsUsed ();
-  bool                get_MessageIdUsed ();
-  bool                get_TimestampUsed ();
+  uint32_t  get_DeviceId ();
+  bool      get_DeviceIdsUsed ();
+  bool      get_MessageIdUsed ();
+  bool      get_TimestampUsed ();
 
 //==================== Public Methods ====================
 public:
