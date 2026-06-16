@@ -1,0 +1,11 @@
+--------------------------------------------------------------------------------
+UCOP_CommTest1
+--------------------------------------------------------------------------------
+
+Purpose:
+- Test the composition and search+analysis of UCOP messages to ensure that the library is working as expected.
+- The test runs on a single microcontroller because no actual communication is executed.
+
+Suitable boards:
+- Arduino UNO
+- Pololu A-Star 328PB

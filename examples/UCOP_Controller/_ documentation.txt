@@ -1,0 +1,18 @@
+--------------------------------------------------------------------------------
+UCOP_Controller
+--------------------------------------------------------------------------------
+
+Purpose:
+- Test the composition and search+analysis of UCOP messages including data exchange
+  over a serial port.
+- The test runs on two microcontrollers:
+  - The first executes the program "UCOP_Controller". It needs 2 serial ports, e.g.
+    Pololu A-Star 328PB, because it uses "Serial" port to receive data from the computer
+    and print log messages and it uses "Serial1" port to send the received data in UCOP
+    messages to the 2nd microcontroller.
+  - The second microcontroller executes the program "UCOP_Worker". It receives the data
+    via "Serial1" port, reverses the byte order of the payload and sends it back on the
+    same port. Log messages are printed via "Serial" port.
+
+Suitable boards:
+- Pololu A-Star 328PB

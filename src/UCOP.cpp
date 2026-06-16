@@ -295,6 +295,8 @@ EResult UCOP::SearchMessage ( ByteBuffer* i_pRingBuffer,
     }
     // else: Message End ID missing -> This was no message. Previously identified failures are invalid.
     //       or Checksum wrong -> The message content is incorrect. Previously identified failures are invalid.
+    // else
+    //   Serial << "checksumCalculated: " << _HEX4(checksumCalculated) << "  checksumFromMessage: " << _HEX4 (checksumFromMessage) << endl;
 
     io_Data.Clear ();
     io_Data.PayloadLength = 0;

@@ -2,13 +2,12 @@
 
 #include <UCOPConfig.h>
 
-const uint16_t c_EepromOffset = 60;
+const uint16_t c_EepromOffset = 0;
 
-const bool                m_DeviceIdsUsed = true;
-const bool                m_MessageIdUsed = true;
-const bool                m_TimestampUsed = false;
-const uint32_t            m_DeviceId      = 0x63691401;
-const UCOP::EChecksumType m_ChecksumType  = UCOP::EChecksumType::CRC16;
+const bool      m_DeviceIdsUsed = true;
+const bool      m_MessageIdUsed = true;
+const bool      m_TimestampUsed = false;
+const uint32_t  m_DeviceId      = 0x63691401;
 
 void setup ()
 {
@@ -20,7 +19,6 @@ void setup ()
                                         m_MessageIdUsed,
                                         m_TimestampUsed,
                                         m_DeviceId,
-                                        m_ChecksumType,
                                         pUCOPConfig1);
   Serial << "UCOPConfig.Create(..data..), Result: " << (int)result << " = " << UCOP::GetResultText (result) << endl;
   if (result != EResult::SUCCESS)
