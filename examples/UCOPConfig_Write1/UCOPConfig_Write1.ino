@@ -2,7 +2,7 @@
 
 #include <UCOPConfig.h>
 
-const uint16_t c_EepromOffset = 0;
+const uint16_t c_EepromAddress = 0;
 
 const bool      m_DeviceIdsUsed = true;
 const bool      m_MessageIdUsed = true;
@@ -11,7 +11,7 @@ const uint32_t  m_DeviceId      = 0x63691401;
 
 void setup ()
 {
-  Serial.begin (9600);
+  Serial.begin (115200);
   delay (2000);
 
   UCOPConfig* pUCOPConfig1 = nullptr;
@@ -26,13 +26,13 @@ void setup ()
 
   pUCOPConfig1->Print ();
 
-  result = pUCOPConfig1->WriteToEEPROM (c_EepromOffset);
+  result = pUCOPConfig1->WriteToEEPROM (c_EepromAddress);
   Serial << "UCOPConfig.WriteToEEPROM, Result: " << (int)result << " = " << UCOP::GetResultText (result) << endl;
   if (result != EResult::SUCCESS)
     return;
 
   UCOPConfig* pUCOPConfig2 = nullptr;
-  result = UCOPConfig::Create (c_EepromOffset, pUCOPConfig2);
+  result = UCOPConfig::Create (c_EepromAddress, pUCOPConfig2);
   Serial << "UCOPConfig.Create(..eepromAddress..), Result: " << (int)result << " = " << UCOP::GetResultText (result) << endl;
   if (result == EResult::SUCCESS)
     pUCOPConfig2->Print ();

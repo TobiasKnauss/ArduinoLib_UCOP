@@ -12,7 +12,7 @@ class UCOPConfig
 private:
   //-------------------- static --------------------
 
-  static const bool c_InvertByteOrder = false;
+  static const bool c_InvertByteOrder = true;
 
   //-------------------- instance --------------------
 

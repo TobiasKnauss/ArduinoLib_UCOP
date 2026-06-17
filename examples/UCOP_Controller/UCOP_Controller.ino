@@ -8,8 +8,11 @@
 
 using namespace MemoryTools;
 
-const uint16_t c_EepromOffset = 0;
+const uint16_t c_EepromAddress = 0;
 const uint8_t  c_BufferDefaultValue = 0xFF;
+
+const uint8_t  c_PinNumber_SendEnable     = 10;
+const uint8_t  c_PinNumber_ReceiveDisable = 22;
 
 UCOP*       m_pUCOP       = nullptr;
 UCOPConfig* m_pUCOPConfig = nullptr;
@@ -32,6 +35,11 @@ void setup ()
   Serial.begin (115200);
   Serial1.begin (9600);
   delay (2000);
+
+  pinMode (c_PinNumber_SendEnable,     OUTPUT);
+  pinMode (c_PinNumber_ReceiveDisable, OUTPUT);
+  digitalWrite (c_PinNumber_SendEnable,     LOW);
+  digitalWrite (c_PinNumber_ReceiveDisable, LOW);
 
   bool isSuccess = ByteBuffer::Create (80, 0xFF, true, m_pReceiveBuffer);
   Serial << "ByteBuffer.Create(80, m_pReceiveBuffer) Result: " << isSuccess << endl;
@@ -98,9 +106,16 @@ void loop ()
 
     if (result == EResult::SUCCESS)
     {
+      digitalWrite (c_PinNumber_ReceiveDisable, HIGH);
+      digitalWrite (c_PinNumber_SendEnable,     HIGH);
+
       Serial << F("Sending data...") << endl;
       Serial1.write (m_pSendBuffer->get_pData (), requestMessageLength);
       Serial1.flush ();
+
+
+      digitalWrite (c_PinNumber_SendEnable, LOW);
+      digitalWrite (c_PinNumber_ReceiveDisable, LOW);
     }
 
     memset (m_PayloadSendBuffer, c_BufferDefaultValue, m_PayloadLength);
