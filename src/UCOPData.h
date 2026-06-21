@@ -11,15 +11,14 @@ class UCOPData
 public:
   //-------------------- instance --------------------
 
-  bool                  ActionIsWrite       = false;
-  uint16_t              CommandId           = 0;      // in valid data this may NEVER be zero.
-  uint32_t              MessageId           = 0;      // may be zero if not used.
-  UCOP::EMessageResult  MessageResult       = UCOP::EMessageResult::None; // may be zero (=None) in requests.
-  uint32_t              RemoteDeviceId      = 0;      // may be zero if not used.
-  uint32_t              Timestamp           = 0;      // may be zero if not used.
-  uint8_t*              pPayloadBuffer      = nullptr;
-  uint16_t              PayloadBufferLength = 0;
-  uint16_t              PayloadLength       = 0;
+  bool                  ActionIsWrite   = false;
+  uint16_t              CommandId       = 0;      // in valid data this may NEVER be zero.
+  uint32_t              MessageId       = 0;      // may be zero if not used.
+  UCOP::EMessageResult  MessageResult   = UCOP::EMessageResult::None; // may be zero (=None) in requests.
+  uint32_t              RemoteDeviceId  = 0;      // may be zero if not used.
+  uint32_t              Timestamp       = 0;      // may be zero if not used.
+  ByteBuffer*           pPayloadBuffer  = nullptr;
+  uint16_t              PayloadLength   = 0;
 
 //==================== Constructors ====================
 public:
@@ -52,9 +51,8 @@ public:
 
   bool IsEmpty ();
 
-  void SetPayloadInfo (uint8_t* i_pPayloadBuffer,
-                       uint16_t i_PayloadBufferLength,
-                       uint16_t i_PayloadLength = 0);
+  void SetPayloadInfo ( ByteBuffer* i_pPayloadBuffer,
+                        uint16_t    i_PayloadLength = 0);
 };
 
 #endif

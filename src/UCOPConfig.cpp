@@ -1,9 +1,7 @@
 #include <EEPROM.h>
-#include <MemoryTools_EEPROM.h>
+#include <EepromTools.h>
 
 #include "UCOPConfig.h"
-
-using namespace MemoryTools;
 
 //--------------------------------------------------------------------
 ::EResult UCOPConfig::Create (bool                i_DeviceIdsUsed,
@@ -138,9 +136,9 @@ void UCOPConfig::Print ()
     return result;
 
   uint16_t checksum;
-  if (!Eeprom::CalcChecksumCRC16_From (i_Address, eepromConfigDataSize, checksum))
+  if (!EepromTools::CalcChecksumCRC16_From (i_Address, eepromConfigDataSize, checksum))
     return ::EResult::FAIL_Eeprom_CalcChecksum;
-  Eeprom::WriteValueAndMovePtr (address, checksum, c_InvertByteOrder);
+  EepromTools::WriteValueAndMovePtr (address, checksum, c_InvertByteOrder);
 
   return ::EResult::SUCCESS;
 }
@@ -159,10 +157,10 @@ void UCOPConfig::Print ()
     return result;
 
   uint16_t checksumFromEEPROM = 0;
-  Eeprom::ReadValueAndMovePtr (address, checksumFromEEPROM, c_InvertByteOrder);
+  EepromTools::ReadValueAndMovePtr (address, checksumFromEEPROM, c_InvertByteOrder);
 
   uint16_t checksum;
-  if (!Eeprom::CalcChecksumCRC16_From (i_Address, eepromConfigDataSize, checksum))
+  if (!EepromTools::CalcChecksumCRC16_From (i_Address, eepromConfigDataSize, checksum))
     return ::EResult::FAIL_Eeprom_CalcChecksum;
   if (checksum != checksumFromEEPROM)
     return ::EResult::FAIL_Device_ConfigChecksumWrong;
@@ -174,10 +172,10 @@ void UCOPConfig::Print ()
 ::EResult UCOPConfig::ReadFromEEPROM_exec (uint16_t& io_Address)
 {
   bool isOK = true;
-  isOK &= Eeprom::ReadValueAndMovePtr (io_Address, m_DeviceIdsUsed);
-  isOK &= Eeprom::ReadValueAndMovePtr (io_Address, m_MessageIdUsed);
-  isOK &= Eeprom::ReadValueAndMovePtr (io_Address, m_TimestampUsed);
-  isOK &= Eeprom::ReadValueAndMovePtr (io_Address, m_DeviceId, c_InvertByteOrder);
+  isOK &= EepromTools::ReadValueAndMovePtr (io_Address, m_DeviceIdsUsed);
+  isOK &= EepromTools::ReadValueAndMovePtr (io_Address, m_MessageIdUsed);
+  isOK &= EepromTools::ReadValueAndMovePtr (io_Address, m_TimestampUsed);
+  isOK &= EepromTools::ReadValueAndMovePtr (io_Address, m_DeviceId, c_InvertByteOrder);
   if (!isOK)
     return ::EResult::FAIL_Eeprom_ReadValue;
 
@@ -197,10 +195,10 @@ void UCOPConfig::Print ()
 ::EResult UCOPConfig::WriteToEEPROM_exec (uint16_t& io_Address)
 {
   bool isOK = true;
-  isOK &= Eeprom::WriteValueAndMovePtr (io_Address, m_DeviceIdsUsed);
-  isOK &= Eeprom::WriteValueAndMovePtr (io_Address, m_MessageIdUsed);
-  isOK &= Eeprom::WriteValueAndMovePtr (io_Address, m_TimestampUsed);
-  isOK &= Eeprom::WriteValueAndMovePtr (io_Address, m_DeviceId, c_InvertByteOrder);
+  isOK &= EepromTools::WriteValueAndMovePtr (io_Address, m_DeviceIdsUsed);
+  isOK &= EepromTools::WriteValueAndMovePtr (io_Address, m_MessageIdUsed);
+  isOK &= EepromTools::WriteValueAndMovePtr (io_Address, m_TimestampUsed);
+  isOK &= EepromTools::WriteValueAndMovePtr (io_Address, m_DeviceId, c_InvertByteOrder);
   if (!isOK)
     return ::EResult::FAIL_Eeprom_WriteValue;
 

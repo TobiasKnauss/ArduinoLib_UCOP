@@ -258,8 +258,9 @@ EResult UCOP::SearchMessage ( ByteBuffer* i_pRingBuffer,
     {
       if (io_Data.pPayloadBuffer == nullptr)
         return ::EResult::FAIL_Pointer_IsZero;
-      if (io_Data.PayloadBufferLength < io_Data.PayloadLength)
+      if (io_Data.pPayloadBuffer->get_Length () < io_Data.PayloadLength)
         return ::EResult::FAIL_Buffer_TooSmall;
+      io_Data.pPayloadBuffer->SetWritePointer (0);
     }
 
     //========== Payload ==========
@@ -325,14 +326,16 @@ EResult UCOP::SearchMessage ( ByteBuffer* i_pRingBuffer,
   {
     if (i_Data.pPayloadBuffer == nullptr)
       return ::EResult::FAIL_Pointer_IsZero;
-    if (i_Data.PayloadBufferLength < i_Data.PayloadLength)
+    if (i_Data.pPayloadBuffer->get_Length () < i_Data.PayloadLength)
       return ::EResult::FAIL_Buffer_TooSmall;
   }
 
-  //========== Header ==========
+  i_Data.pPayloadBuffer->SetReadPointer (0);
   i_pMessageBuffer->SetWritePointer (0);
   if (!i_pMessageBuffer->Clear_From (0, headerSize))
     return ::EResult::FAIL_Buffer_Clear;
+
+  //========== Header ==========
 
   // STX
   if (!i_pMessageBuffer->WriteValueAndMovePtr (c_MessageStartId))

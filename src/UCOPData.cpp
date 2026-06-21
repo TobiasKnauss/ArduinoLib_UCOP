@@ -62,11 +62,9 @@ bool UCOPData::IsEmpty ()
 }
 
 //--------------------------------------------------------------------
-void UCOPData::SetPayloadInfo (uint8_t* i_pPayloadBuffer,
-                               uint16_t i_PayloadBufferLength,
-                               uint16_t i_PayloadLength)
+void UCOPData::SetPayloadInfo ( ByteBuffer* i_pPayloadBuffer,
+                                uint16_t    i_PayloadLength)
 {
-  pPayloadBuffer      = i_pPayloadBuffer;
-  PayloadBufferLength = i_PayloadBufferLength;
-  PayloadLength       = i_PayloadLength;
+  pPayloadBuffer  = i_pPayloadBuffer;
+  PayloadLength   = i_PayloadLength;
 }

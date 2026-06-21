@@ -7,6 +7,7 @@ UCOPConfig* m_pUCOPConfig = nullptr;
 UCOPData    m_RequestData;
 UCOPData    m_ReplyData;
 ByteBuffer* m_pMessageBuffer = nullptr;
+ByteBuffer* m_pPayloadBuffer = nullptr;
 
 void setup ()
 {
@@ -20,6 +21,8 @@ void setup ()
 
   result = UCOP::Create (m_pUCOPConfig, m_pUCOP);
   Serial.println (UCOP::GetResultText (result));
+
+  m_RequestData.SetPayloadInfo (m_pPayloadBuffer);
 }
 
 void loop ()
