@@ -13,8 +13,8 @@ UCOPConfig* m_pUCOPConfig = nullptr;
 
 ByteBuffer* m_pReceiveBuffer;
 ByteBuffer* m_pSendBuffer;
-uint8_t m_PayloadSendBuffer[20];
-uint8_t m_PayloadRecvBuffer[20];
+ByteBuffer* m_pPayloadSendBuffer;
+ByteBuffer* m_pPayloadRecvBuffer;
 
 uint16_t messageLength = 0;
 
@@ -28,22 +28,27 @@ void setup ()
 
   bool isSuccess = ByteBuffer::Create (80, 0xFF, true, m_pReceiveBuffer);
   Serial << "ByteBuffer.Create(80, m_pReceiveBuffer) Result: " << isSuccess << endl;
-  isSuccess = ByteBuffer::Create (80, 0xFF, false, m_pSendBuffer);
-  Serial << "ByteBuffer.Create(80, m_pSendBuffer) Result: " << isSuccess << endl;
-
-  memset (m_PayloadSendBuffer, 0xFF, sizeof (m_PayloadSendBuffer));
-  memset (m_PayloadRecvBuffer, 0xFF, sizeof (m_PayloadRecvBuffer));
+  isSuccess = ByteBuffer::Create (50, 0xFF, false, m_pSendBuffer);
+  Serial << "ByteBuffer.Create(50, m_pSendBuffer) Result: " << isSuccess << endl;
+  isSuccess = ByteBuffer::Create (20, 0xFF, false, m_pPayloadSendBuffer);
+  Serial << "ByteBuffer.Create(20, m_PayloadSendBuffer) Result: " << isSuccess << endl;
+  isSuccess = ByteBuffer::Create (20, 0xFF, false, m_pPayloadRecvBuffer);
+  Serial << "ByteBuffer.Create(20, m_PayloadRecvBuffer) Result: " << isSuccess << endl;
 
   EResult result;
   byte payloadLength = 6;
   char text[10] = "Hello!";
   byte textLength = 10;
-  memcpy (&m_PayloadSendBuffer, &text, textLength);
+  m_pPayloadSendBuffer->WriteBytesAndMovePtr (textLength, (uint8_t*)text, false);
 
   Serial << F("SendBuffer Len=") << m_pSendBuffer->get_Length ()    << endl;
   m_pSendBuffer->Print (&Serial, true);
   Serial << F("RecvBuffer Len=") << m_pReceiveBuffer->get_Length () << endl;
   m_pReceiveBuffer->Print (&Serial, true);
+  Serial << F("PayloadSendBuffer Len=") << m_pPayloadSendBuffer->get_Length () << endl;
+  m_pPayloadSendBuffer->Print (&Serial, true);
+  Serial << F("PayloadRecvBuffer Len=") << m_pPayloadRecvBuffer->get_Length () << endl;
+  m_pPayloadRecvBuffer->Print (&Serial, true);
 
   result = UCOPConfig::Create (true, true, false, 101, m_pUCOPConfig);
   Serial << F("UCOPConfig.Create() Result: ") << (int)result << " = " << UCOP::GetResultText (result) << endl;
@@ -52,7 +57,7 @@ void setup ()
 
   uint16_t messageLength = 0;
   UCOPData ucopData = UCOPData (UCOP::ACTION_Read, 258, 42);
-  ucopData.SetPayloadInfo (m_PayloadSendBuffer, sizeof (m_PayloadSendBuffer), payloadLength);
+  ucopData.SetPayloadInfo (m_pPayloadSendBuffer, payloadLength);
   result = m_pUCOP->ComposeRequest (ucopData, m_pSendBuffer, messageLength);
   Serial << "UCOP.ComposeRequest() Result: " << (int)result << " = " << UCOP::GetResultText (result) << ", MsgLen=" << messageLength << endl;
   m_pSendBuffer->Print (&Serial, true);
@@ -78,30 +83,31 @@ void setup ()
   memcpy (m_pReceiveBuffer->get_pData (), m_pReceiveBuffer->get_pData () + 35, messageLength - msgWrap);
   m_pReceiveBuffer->Print (&Serial, true);
 
-  UCOPData recvData;
-  recvData.SetPayloadInfo (m_PayloadRecvBuffer, sizeof (m_PayloadRecvBuffer));
-  bool     recvMessageTypeIsReply  = false;
-  uint16_t recvMessageLength       = 0;
+  UCOPData receivedData;
+  receivedData.SetPayloadInfo (m_pPayloadRecvBuffer);
+  bool     receivedMessageTypeIsReply  = false;
+  uint16_t receivedMessageLength       = 0;
 
   do
   {
     result = m_pUCOP->SearchMessage (m_pReceiveBuffer,
-                                     recvData,
-                                     recvMessageTypeIsReply,
-                                     recvMessageLength);
-    Serial << "SearchMessage() Result: " << (int)result << " = " << UCOP::GetResultText (result) << endl;
-    Serial << F("Message Type is REPLY: ") << (uint8_t)recvMessageTypeIsReply << endl;
-    Serial << F("Action is WRITE:       ") << recvData.ActionIsWrite          << endl;
-    Serial << F("Remote Device Id:      ") << recvData.RemoteDeviceId         << endl;
-    Serial << F("Message Id:            ") << recvData.MessageId              << endl;
-    Serial << F("Timestamp:             ") << recvData.Timestamp              << endl;
-    Serial << F("CommandId:             ") << recvData.CommandId              << endl;
-    Serial << F("Result:                ") << (uint8_t)recvData.MessageResult << endl;
-    Serial << F("Payload Data Length:   ") << recvData.PayloadLength          << endl;
-    Serial << F("Payload Data: ");
-    Memory::PrintLn (m_PayloadRecvBuffer, recvData.PayloadLength);
-    Serial << F("Message Length: ") << recvMessageLength      << endl;
+                                     receivedData,
+                                     receivedMessageTypeIsReply,
+                                     receivedMessageLength);
+    Serial << F("UCOP.SearchMessage() result = ") << (int)result << " = " << UCOP::GetResultText (result) << endl;
 
+    Serial << F("Message Type is REPLY: ") << receivedMessageTypeIsReply          << endl;
+    Serial << F("Action is WRITE:       ") << receivedData.ActionIsWrite          << endl;
+    Serial << F("Remote Device Id:      ") << _HEX8 (receivedData.RemoteDeviceId) << endl;
+    Serial << F("Message Id:            ") << receivedData.MessageId              << endl;
+    Serial << F("Timestamp:             ") << receivedData.Timestamp              << endl;
+    Serial << F("CommandId:             ") << receivedData.CommandId              << endl;
+    Serial << F("Result:                ") << (uint8_t)receivedData.MessageResult << endl;
+    Serial << F("Payload Data Length:   ") << receivedData.PayloadLength          << endl;
+    Serial << F("Message Length:        ") << receivedMessageLength               << endl;
+
+    Serial << F("Payload Data: ") << endl;
+    m_pPayloadRecvBuffer->Print (&Serial, true);
     m_pReceiveBuffer->Print (&Serial, true);
   }
   while (result == ::EResult::SUCCESS);

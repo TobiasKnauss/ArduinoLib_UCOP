@@ -152,6 +152,8 @@ EResult UCOP::SearchMessage ( ByteBuffer* i_pRingBuffer,
 
   io_Data.Clear ();
   io_Data.PayloadLength = 0;
+  if (io_Data.pPayloadBuffer != nullptr)
+    io_Data.pPayloadBuffer->Clear ();
   o_MessageTypeIsReply = false;
   o_MessageLength      = 0;
 
@@ -330,7 +332,6 @@ EResult UCOP::SearchMessage ( ByteBuffer* i_pRingBuffer,
       return ::EResult::FAIL_Buffer_TooSmall;
   }
 
-  i_Data.pPayloadBuffer->SetReadPointer (0);
   i_pMessageBuffer->SetWritePointer (0);
   if (!i_pMessageBuffer->Clear_From (0, headerSize))
     return ::EResult::FAIL_Buffer_Clear;
@@ -403,6 +404,7 @@ EResult UCOP::SearchMessage ( ByteBuffer* i_pRingBuffer,
 
   //========== Payload ==========
   // Payload data
+  i_Data.pPayloadBuffer->SetReadPointer (0);
   if (!i_pMessageBuffer->WriteBytesAndMovePtr (i_Data.PayloadLength, i_Data.pPayloadBuffer, false))
     return ::EResult::FAIL_Buffer_WriteBytes;
 
