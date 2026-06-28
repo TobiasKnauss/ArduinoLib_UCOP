@@ -80,7 +80,7 @@ UCOPConfig::UCOPConfig (bool                i_DeviceIdsUsed,
 //--------------------------------------------------------------------
 uint8_t UCOPConfig::get_EepromConfigDataSize ()
 {
-  return 8;
+  return 7;
 }
 
 //--------------------------------------------------------------------
